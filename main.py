@@ -14,7 +14,7 @@ from argon2 import PasswordHasher
 import os,time
 
 hostName = "localhost"
-serverPort = 8080
+serverPort = 8080 #runs on port 8080
 
 # Connect to SQLite database for keys storage
 conn = sqlite3.connect('totally_not_my_privateKeys.db')
@@ -42,6 +42,8 @@ cursor.execute('''
     )
 ''')
                
+               #creates auth_logs table
+               
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS auth_logs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,10 +64,13 @@ AES_SECRET_KEY = os.environ.get('NOT_MY_KEY', '').encode('utf-8')
 password_hasher = PasswordHasher()
 
 
+#generates private key
 private_key = rsa.generate_private_key(
     public_exponent=65537,
     key_size=2048,
 )
+
+#will be used later
 expired_key = rsa.generate_private_key(
     public_exponent=65537,
     key_size=2048,
@@ -112,6 +117,7 @@ def authenticate_user(username, password):
             return user_id
     return None
 
+#conversion function
 
 def int_to_base64(value):
     """Convert an integer to a Base64URL-encoded string"""
@@ -156,7 +162,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.send_response(405)
         self.end_headers()
         return
-
+#post data request
     def do_POST(self):
         parsed_path = urlparse(self.path)
         params = parse_qs(parsed_path.query)
@@ -235,6 +241,10 @@ class MyServer(BaseHTTPRequestHandler):
         return
      
 
+
+
+    #get method
+
     def do_GET(self):
         if self.path == "/.well-known/jwks.json":
             self.send_response(200)
@@ -259,7 +269,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.end_headers()
         return
 
-
+#server operation
 if __name__ == "__main__":
     webServer = HTTPServer((hostName, serverPort), MyServer)
     try:
